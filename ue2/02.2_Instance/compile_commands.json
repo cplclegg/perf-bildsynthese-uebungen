@@ -1,0 +1,25 @@
+[
+ {
+  "directory": "/home/tomnir/Documents/devel/hshbin/perf-bildsynthese-uebungen/ue2/02.2_Instance",
+  "arguments": [
+   "g++",
+   "-std=c++17",
+   "-O2",
+   "-Wall",
+   "-Wextra",
+   "-o",
+   "testapp",
+   "main.cpp",
+   "Instance.cpp",
+   "-lglfw",
+   "-lvulkan",
+   "-ldl",
+   "-lpthread",
+   "-lX11",
+   "-lXxf86vm",
+   "-lXrandr",
+   "-lXi"
+  ],
+  "file": "Instance.cpp"
+ }
+]

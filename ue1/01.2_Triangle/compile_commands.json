@@ -1,0 +1,24 @@
+[
+ {
+  "directory": "/home/tomnir/Documents/devel/hshbin/perf-bildsynthese-uebungen/ue1/01.2_Triangle",
+  "arguments": [
+   "g++",
+   "-std=c++17",
+   "-O2",
+   "-Wall",
+   "-Wextra",
+   "-o",
+   "triangle",
+   "main.cpp",
+   "-lglfw",
+   "-lvulkan",
+   "-ldl",
+   "-lpthread",
+   "-lX11",
+   "-lXxf86vm",
+   "-lXrandr",
+   "-lXi"
+  ],
+  "file": "main.cpp"
+ }
+]
