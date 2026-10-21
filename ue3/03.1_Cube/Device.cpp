@@ -12,9 +12,7 @@
 // print the name of the device
 //
 // throw an error if no device is suitable
-VkPhysicalDevice
-pickPhysicalDevice(VkInstance instance,
-                   bool (*isDeviceSuitable)(VkPhysicalDevice)) {
+VkPhysicalDevice pickPhysicalDevice(VkInstance instance, bool (*isDeviceSuitable)(VkPhysicalDevice)) {
   uint32_t physicalDeviceCount{0};
   vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr);
 
@@ -24,6 +22,7 @@ pickPhysicalDevice(VkInstance instance,
   std::vector<VkPhysicalDevice> physicalDevices{physicalDeviceCount};
   vkEnumeratePhysicalDevices(instance, &physicalDeviceCount,
                              physicalDevices.data());
+
   for (auto &pd : physicalDevices) {
     if (isDeviceSuitable(pd))
       return pd;

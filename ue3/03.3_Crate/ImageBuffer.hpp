@@ -36,6 +36,7 @@ private:
     VkDeviceMemory _imageBufferMemory;
     int _texWidth;
     int _texHeight;
+    int _numberOfTexChannels {0};
 
     // use `stbi_load(…)` to load image with four channels per pixel
     // set _texWidth and _texHeight to the width and height of the image

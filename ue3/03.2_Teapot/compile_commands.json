@@ -1,1 +1,28 @@
-[]
+[
+ {
+  "directory": "/home/tomnir/Documents/devel/hshbin/perf-bildsynthese-uebungen/ue3/03.2_Teapot",
+  "arguments": [
+   "g++",
+   "-g",
+   "-std=c++17",
+   "-O2",
+   "-Wall",
+   "-Wextra",
+   "-o",
+   "testapp",
+   "main.cpp",
+   "Instance.cpp",
+   "Device.cpp",
+   "VertexBuffer.cpp",
+   "-lglfw",
+   "-lvulkan",
+   "-ldl",
+   "-lpthread",
+   "-lX11",
+   "-lXxf86vm",
+   "-lXrandr",
+   "-lXi"
+  ],
+  "file": "VertexBuffer.cpp"
+ }
+]

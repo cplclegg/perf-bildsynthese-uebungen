@@ -1,7 +1,8 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
-
+#include "Vertex.hpp"
+#include <vector>
 
 class VertexBuffer {
 public:
@@ -57,5 +58,8 @@ private:
     
     // free buffer memory
     void cleanupMemory();
+
+    // load data from a .obj file
+    float* loadObj(const char* location);
 
 };
