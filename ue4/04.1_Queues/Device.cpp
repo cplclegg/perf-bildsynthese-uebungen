@@ -52,7 +52,6 @@ void Device::pickPhysicalDevice(VkInstance instance,
 void Device::createLogicalDevice() {
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-
   VkDeviceQueueCreateInfo graphicsQueueCreateInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
       .pNext = nullptr,
