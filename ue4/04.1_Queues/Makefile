@@ -1,4 +1,4 @@
-CFLAGS = -g -std=c++17 -O2 -Wall -Wextra
+CFLAGS = -g -std=c++20 -O2 -Wall -Wextra
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
 HEADER_FILES = \
