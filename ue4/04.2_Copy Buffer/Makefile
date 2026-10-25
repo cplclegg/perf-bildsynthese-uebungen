@@ -7,14 +7,15 @@ Instance.hpp \
 Device.hpp \
 Vertex.hpp \
 VertexBuffer.hpp \
-ImageBuffer.hpp
+ImageBuffer.hpp \
+VulkanUtils.hpp
 
 SOURCE_FILES = \
 main.cpp \
 Instance.cpp \
 Device.cpp \
 VertexBuffer.cpp \
-ImageBuffer.cpp
+ImageBuffer.cpp 
 
 SHADERS = \
 shaders/testapp.vert.spv \
