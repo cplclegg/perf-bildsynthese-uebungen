@@ -1,5 +1,4 @@
 #include "Device.hpp"
-#include <iostream>
 #include <stdexcept>
 #include <vector>
 #include <vulkan/vulkan_core.h>
