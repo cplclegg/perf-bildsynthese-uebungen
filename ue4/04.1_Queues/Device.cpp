@@ -30,7 +30,7 @@ void Device::pickPhysicalDevice(VkInstance instance,
 
       for (uint32_t i = 0; i < queueFamPropCount; ++i) {
         auto qf = queueFamProps[i];
-        if (qf.queueFlags & VK_QUEUE_GRAPHICS_BIT && !graphicsQueueFound) {
+        if ((qf.queueFlags & VK_QUEUE_GRAPHICS_BIT) && !graphicsQueueFound) {
           _graphicsQueueFamilyIndex = i;
           graphicsQueueFound = true;
         }
@@ -98,6 +98,7 @@ void Device::createLogicalDevice() {
 void Device::destroyLogicalDevice() {
   // vkDeviceWaitIdle(_logicalDevice);
   vkDestroyDevice(_logicalDevice, nullptr);
+  _logicalDevice = VK_NULL_HANDLE;
 }
 
 void Device::createCommandPool() {
@@ -114,4 +115,5 @@ void Device::createCommandPool() {
 
 void Device::destroyCommandPool() {
   vkDestroyCommandPool(_logicalDevice, _commandPool, nullptr);
+  _commandPool = VK_NULL_HANDLE;
 }
