@@ -1,7 +1,12 @@
 #include "Device.hpp"
+#include <cstring>
 #include <stdexcept>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+
+//=============================================================================
+//============================= Pick physical device ==========================
+//=============================================================================
 
 void Device::pickPhysicalDevice(VkInstance instance,
                                 bool (*isDeviceSuitable)(VkPhysicalDevice),
@@ -17,8 +22,10 @@ void Device::pickPhysicalDevice(VkInstance instance,
   std::vector<VkPhysicalDevice> physicalDevices{physicalDeviceCount};
   vkEnumeratePhysicalDevices(instance, &physicalDeviceCount,
                              physicalDevices.data());
+
   bool graphicsQueueFound{false};
   bool presentQueueFound{false};
+  bool computeQueueFound{false};
   for (auto &pd : physicalDevices) {
     if (isDeviceSuitable(pd)) {
       uint32_t queueFamPropCount{};
@@ -37,6 +44,10 @@ void Device::pickPhysicalDevice(VkInstance instance,
           _presentQueueFamilyIndex = i;
           presentQueueFound = true;
         }
+        if (qf.queueFlags & VK_QUEUE_COMPUTE_BIT && !computeQueueFound) {
+          _computeQueueFamilyIndex = i;
+          computeQueueFound = true;
+        }
       }
       _physicalDevice = pd;
       if (graphicsQueueFound && presentQueueFound)
@@ -48,6 +59,9 @@ void Device::pickPhysicalDevice(VkInstance instance,
   }
 }
 
+//=============================================================================
+//======================== Create/destroy logical device ======================
+//=============================================================================
 void Device::createLogicalDevice() {
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -61,6 +75,16 @@ void Device::createLogicalDevice() {
   };
   queueCreateInfos.push_back(graphicsQueueCreateInfo);
 
+  VkDeviceQueueCreateInfo computeQueueCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+      .queueFamilyIndex = _computeQueueFamilyIndex,
+      .queueCount = 1,
+      .pQueuePriorities = nullptr,
+  };
+  queueCreateInfos.push_back(computeQueueCreateInfo);
+
   if (_graphicsQueueFamilyIndex != _presentQueueFamilyIndex) {
     VkDeviceQueueCreateInfo presentQueueCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -73,9 +97,39 @@ void Device::createLogicalDevice() {
     queueCreateInfos.push_back(presentQueueCreateInfo);
   }
 
-  const char *extensions = "VK_KHR_swapchain";
-  VkPhysicalDeviceFeatures features{};
-  features.samplerAnisotropy = VK_TRUE;
+  std::vector<VkExtensionProperties> pdExtensionProperties{};
+  uint32_t exPropCount{};
+  vkEnumerateDeviceExtensionProperties(_physicalDevice, nullptr, &exPropCount,
+                                       nullptr);
+  pdExtensionProperties.resize(exPropCount);
+  vkEnumerateDeviceExtensionProperties(_physicalDevice, nullptr, &exPropCount,
+                                       pdExtensionProperties.data());
+
+  std::vector<const char *> extensions{
+      "VK_KHR_swapchain",
+  };
+  bool allExtensionsFound{true};
+  for (auto &e : extensions) {
+    bool extensionFound{false};
+    for (auto &ep : pdExtensionProperties) {
+      if (strcmp(e, ep.extensionName) != 0) {
+        extensionFound = true;
+        break;
+      }
+    }
+    allExtensionsFound = allExtensionsFound && extensionFound;
+  }
+  if (!allExtensionsFound) {
+    throw std::runtime_error("Error: missing extensions");
+  }
+  VkPhysicalDeviceFeatures availableFeatures{};
+  VkPhysicalDeviceFeatures requiredFeatures{};
+  requiredFeatures.samplerAnisotropy = VK_TRUE;
+  vkGetPhysicalDeviceFeatures(_physicalDevice, &availableFeatures);
+
+  if (availableFeatures.samplerAnisotropy != VK_TRUE)
+    throw std::runtime_error("Error: missing feature samplerAnisotropy");
+
   VkDeviceCreateInfo deviceCreateInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .pNext = nullptr,
@@ -84,9 +138,9 @@ void Device::createLogicalDevice() {
       .pQueueCreateInfos = queueCreateInfos.data(),
       .enabledLayerCount = 0,
       .ppEnabledLayerNames = nullptr,
-      .enabledExtensionCount = 1,
-      .ppEnabledExtensionNames = &extensions,
-      .pEnabledFeatures = &features,
+      .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+      .ppEnabledExtensionNames = extensions.data(),
+      .pEnabledFeatures = &requiredFeatures,
   };
 
   if (vkCreateDevice(_physicalDevice, &deviceCreateInfo, nullptr,
@@ -99,6 +153,9 @@ void Device::destroyLogicalDevice() {
   vkDestroyDevice(_logicalDevice, nullptr);
 }
 
+//=============================================================================
+//======================= Create/detroy logical device ========================
+//=============================================================================
 void Device::createCommandPool() {
   VkCommandPoolCreateInfo commandPoolCreateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,

@@ -19,13 +19,16 @@ void main(void)
 {
   uint index = gl_GlobalInvocationID.x;
   
+  // reset position after cube falls out of the bottom of the window
   if (curr[index].position.y < 0.0) {
     curr[index].position = init[index].position;
     curr[index].velocity = init[index].velocity;
   }
 
+  // acceleration constant of 0.01 in downwards direction
   vec3 currAcceleration = vec3(0.0, -0.01, 0.0); 
 
+  // simple euler integration
   curr[index].position += curr[index].velocity;
   curr[index].velocity += currAcceleration;
 }
