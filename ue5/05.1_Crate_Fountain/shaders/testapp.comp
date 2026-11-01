@@ -15,6 +15,9 @@ layout(set = 0, binding = 1) buffer current {
    Particle curr[];
 };
 
+Particle eulerFunc(vec3 position, vec3 velocity, vec3 acceleration);
+Particle rungeKuttaFunc(vec3 position, vec3 velocity, vec3 acceleration);
+
 void main(void)
 {
   uint index = gl_GlobalInvocationID.x;
@@ -28,7 +31,36 @@ void main(void)
   // acceleration constant of 0.01 in downwards direction
   vec3 currAcceleration = vec3(0.0, -0.01, 0.0); 
 
-  // simple euler integration
-  curr[index].position += curr[index].velocity;
-  curr[index].velocity += currAcceleration;
+  // simple euler 
+  //curr[index].position += curr[index].velocity;
+  //curr[index].velocity += currAcceleration;
+  
+  //curr[index] = eulerFunc(curr[index].position, curr[index].velocity, currAcceleration); 
+  curr[index] = rungeKuttaFunc(curr[index].position, curr[index].velocity, currAcceleration);
+}
+
+Particle rungeKuttaFunc(vec3 position, vec3 velocity, vec3 acceleration) {
+  float h = 1.0;
+
+  // acceleration constant of 0.01 in downwards direction
+  vec3 currAcceleration = vec3(0.0, -0.01, 0.0); 
+
+  Particle x_zero = {position, velocity};
+  Particle k_one = eulerFunc(x_zero.position, x_zero.velocity, currAcceleration);
+  Particle k_two = eulerFunc(x_zero.position + (h/2)*k_one.position, x_zero.velocity + (h/2)*k_one.velocity, currAcceleration);
+  Particle k_three = eulerFunc(x_zero.position + (h/2)*k_two.position, x_zero.velocity + (h/2)*k_two.velocity, currAcceleration);
+  Particle k_four = eulerFunc(x_zero.position + k_three.position, x_zero.velocity + k_three.velocity, currAcceleration);
+
+  Particle result = {
+     x_zero.position + (h/6)*k_one.position + (h/3)*k_two.position + (h/3)*k_three.position + (h/6)*k_four.position,
+     x_zero.velocity + (h/6)*k_one.velocity + (h/3)*k_two.velocity + (h/3)*k_three.velocity + (h/6)*k_four.velocity};
+
+  return result;
+}
+
+Particle eulerFunc(vec3 position, vec3 velocity, vec3 acceleration) {
+   position += velocity;
+   velocity += acceleration;
+   Particle particle = {position, velocity};
+   return particle;
 }
