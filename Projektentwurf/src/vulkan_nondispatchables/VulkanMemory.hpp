@@ -18,16 +18,7 @@ private:
     VkDevice m_deviceHandle;
     VkDeviceMemory m_memoryHandle;
 public:
-
-    void write(void* source, size_t size, size_t offset)
-    {
-        if (!(offset<=m_allocateInfo.size && size <= allocateInfo.size - offset))
-        {
-            throw std::runtime_error("Error: memory capacity exceeded in write operation");
-        }
-        void* destination {m_hostAccessiblePtr + offset};
-        std::memcpy(destination, source, size);
-    }
+    void write(void* source, size_t size, size_t offset);
 };
 
 
