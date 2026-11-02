@@ -5,7 +5,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <cstring>
 #include <iostream>
-
 #include "stb_image.h"
 
 void ImageBuffer::createBuffer()
