@@ -154,7 +154,7 @@ void Device::destroyLogicalDevice() {
 }
 
 //=============================================================================
-//======================= Create/detroy logical device ========================
+//======================= Create command pool
 //=============================================================================
 void Device::createCommandPool() {
   VkCommandPoolCreateInfo commandPoolCreateInfo{
