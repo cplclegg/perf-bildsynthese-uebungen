@@ -1,5 +1,5 @@
 #pragma once
-
+#define VK_QUEUE_FAMILY_IGNORED (~0U)
 #include <vulkan/vulkan_core.h>
 #include <fstream>
 #include <stdexcept>
@@ -56,40 +56,59 @@ class VulkanUtils {
   //=================================  Copy data from sourceBuffer to destinationImage ==============================
   //==================================================================================================================
   static void copyBufferToImage(VkBuffer sourceBuffer, VkImage destinationImage, VkCommandPool commandPool,
-                                VkDevice device, uint32_t size) {
+                                VkDevice device, uint32_t size, uint32_t width, uint32_t height) {
+
     VkCommandBufferAllocateInfo cmdBufferAI{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
                                             .pNext = nullptr,
                                             .commandPool = commandPool,
                                             .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                                             .commandBufferCount = 1};
+
     VkCommandBuffer cmdBuffer{};
     vkAllocateCommandBuffers(device, &cmdBufferAI, &cmdBuffer);
-    VkCommandBufferBeginInfo cmdBufferBeginInfo{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-                                                .pNext = nullptr,
-                                                .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-                                                .pInheritanceInfo = nullptr};
-    if (vkBeginCommandBuffer(cmdBuffer, &cmdBufferBeginInfo, ) != VK_SUCCESS) {
-      throw std::runtime_error("Error beginning command buffer recording");
-    }
-    VkBufferMemoryBarrier bufferMemBarrier{.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
-                                           .pNext = nullptr,
-                                           .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
-                                           .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-                                           .srcQueueFamilyIndex = 0,
-                                           .dstQueueFamilyIndex = 0,
-                                           .buffer = sourceBuffer,
-                                           .offset = 0,
-                                           .size = size};
+
+    // CHECK IF THIS IS CORRECT AFTER LECTURE
     VkImageMemoryBarrier imageMemBarrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                          .pNext = nullptr,
                                          .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
                                          .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
                                          .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                          .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                         .srcQueueFamilyIndex = 0,
-                                         .dstQueueFamilyIndex = 0,
+                                         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                                         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                                          .image = destinationImage,
-                                         .subresourceRange = {}};
+                                         .subresourceRange = VK_WHOLE_SIZE};
+
+    // todo: create another image memory barrier for the transition src transfer optimal dst shader readonly optimal
+    //       src stage: transfer dst stage: fragment shader
+
+    VkCommandBufferBeginInfo cmdBufferBeginInfo{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                                                .pNext = nullptr,
+                                                .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+                                                .pInheritanceInfo = nullptr};
+
+    if (vkBeginCommandBuffer(cmdBuffer, &cmdBufferBeginInfo) != VK_SUCCESS) {
+      throw std::runtime_error("Error beginning command buffer recording");
+    }
+
+    vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                         VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 0, nullptr, 1, &imageMemBarrier);
+    VkImageSubresourceLayers subResource{
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = 1, .baseArrayLayer = 0, .layerCount = 1};
+    VkBufferImageCopy imageCopy{.bufferOffset = 0,
+                                .bufferRowLength = width,
+                                .bufferImageHeight = height,
+                                .imageSubresource = subResource,
+                                .imageOffset = 0,
+                                .imageExtent = {width, height, 1}
+
+    };
+    vkCmdCopyBufferToImage(cmdBuffer, sourceBuffer, destinationImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+                           &imageCopy);
+    // todo: record another cmdpipelinebarrier with the additional barrier
+    // todo: end buffer
+    // todo: add parameter for queue
+    // todo: submit cmd buffer to that queue
   }
 
   //==================================================================================================================
