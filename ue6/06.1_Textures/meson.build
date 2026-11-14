@@ -46,7 +46,7 @@ foreach shader : shader_sources
     custom_target(
         shader + '.spv',
         input: 'shaders/' + shader,
-        output: shader + '.spv',
+        output: 'shaders/' + shader + '.spv',
         command: [glslang, '-V', '-o', '@OUTPUT@', '@INPUT@'],
         build_by_default: true
     )

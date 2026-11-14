@@ -5,9 +5,11 @@
 #include "Texture.hpp"
 #include <vulkan/vulkan_core.h>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <stdexcept>
 #include "VulkanUtils.hpp"
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 // create the staging buffer for the texture
 // - load pixel data from file with name filename
@@ -135,14 +137,53 @@ void Texture::allocateTextureImageMemory() {
 // - wait for _queue to become idle
 // - free the command buffer
 void Texture::copyBufferToImage() {
-  VulkanUtils::copyBufferToImage(_imageBuffer, _textureImage, _commandPool, _device, _texWidth * _texHeight * 4);
+  VulkanUtils::copyBufferToImage(_imageBuffer, _textureImage, _commandPool, _device, _texWidth, _texHeight,
+                                 _queue);
 }
 
 // create an image view for _textureImage
 // - save to _textureImageView
-void Texture::createTextureImageView() {}
+void Texture::createTextureImageView() {
+  VkImageSubresourceRange subResourceRange{.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                           .baseMipLevel = 0,
+                                           .levelCount = 1,
+                                           .baseArrayLayer = 0,
+                                           .layerCount = 1};
+  VkImageViewCreateInfo imageViewCI{.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                                    .pNext = nullptr,
+                                    .flags = 0,
+                                    .image = _textureImage,
+                                    .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                                    .format = VK_FORMAT_R8G8B8A8_SRGB,
+                                    .components{},
+                                    .subresourceRange = subResourceRange};
+  if (vkCreateImageView(_device, &imageViewCI, nullptr, &_textureImageView) != VK_SUCCESS) {
+    throw std::runtime_error("Error creating texture image view");
+  }
+}
 
 // create a sampler
 // - save to _textureSampler
-void Texture::createTextureSampler() {}
-
+void Texture::createTextureSampler() {
+  VkSamplerCreateInfo samplerCI{.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+                                .pNext = nullptr,
+                                .flags{},
+                                .magFilter = VK_FILTER_LINEAR,
+                                .minFilter = VK_FILTER_LINEAR,
+                                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                                .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                .mipLodBias = 0.0f,
+                                .anisotropyEnable = VK_FALSE,
+                                .maxAnisotropy = 0.0f,
+                                .compareEnable = VK_FALSE,
+                                .compareOp = VK_COMPARE_OP_NEVER,
+                                .minLod = 0,
+                                .maxLod = 0,
+                                .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
+                                .unnormalizedCoordinates = VK_TRUE};
+  if (vkCreateSampler(_device, &samplerCI, nullptr, &_textureSampler) != VK_SUCCESS) {
+    throw std::runtime_error("Error creating sampler");
+  };
+}

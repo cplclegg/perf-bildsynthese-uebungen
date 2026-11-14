@@ -43,11 +43,11 @@ void Device::pickPhysicalDevice(VkInstance instance,
         if (canQueueFamilyPresent(pd, i) && !presentQueueFound) {
           _presentQueueFamilyIndex = i;
           presentQueueFound = true;
-        }
+        } /*
         if (qf.queueFlags & VK_QUEUE_COMPUTE_BIT && !computeQueueFound) {
           _computeQueueFamilyIndex = i;
           computeQueueFound = true;
-        }
+        } */
       }
       _physicalDevice = pd;
       if (graphicsQueueFound && presentQueueFound)
@@ -74,7 +74,7 @@ void Device::createLogicalDevice() {
       .pQueuePriorities = nullptr,
   };
   queueCreateInfos.push_back(graphicsQueueCreateInfo);
-
+  /*
   VkDeviceQueueCreateInfo computeQueueCreateInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
       .pNext = nullptr,
@@ -84,7 +84,7 @@ void Device::createLogicalDevice() {
       .pQueuePriorities = nullptr,
   };
   queueCreateInfos.push_back(computeQueueCreateInfo);
-
+  */
   if (_graphicsQueueFamilyIndex != _presentQueueFamilyIndex) {
     VkDeviceQueueCreateInfo presentQueueCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
