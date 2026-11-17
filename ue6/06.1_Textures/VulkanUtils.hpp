@@ -53,11 +53,13 @@ class VulkanUtils {
   }
 
   //==================================================================================================================
-  //=================================  Copy data from sourceBuffer to destinationImage ==============================
+  //=================================  Copy data from sourceBuffer to destinationImage ===============================
   //==================================================================================================================
+
   static void copyBufferToImage(VkBuffer sourceBuffer, VkImage destinationImage, VkCommandPool commandPool,
                                 VkDevice device, uint32_t width, uint32_t height, VkQueue queue) {
 
+    // set up structures for the needed commands
     VkCommandBufferAllocateInfo cmdBufferAI{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
                                             .pNext = nullptr,
                                             .commandPool = commandPool,
@@ -75,11 +77,10 @@ class VulkanUtils {
         .layerCount = 1,
     };
 
-    // note: are src and dst access masks correct? find specs/docs with llm
     VkImageMemoryBarrier imageMemBarrier{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                          .pNext = nullptr,
-                                         .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-                                         .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                                         .srcAccessMask = 0,
+                                         .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
                                          .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                          .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -87,12 +88,9 @@ class VulkanUtils {
                                          .image = destinationImage,
                                          .subresourceRange = subResourceRange};
 
-    // todo: create another image memory barrier for the transition src transfer optimal dst shader readonly optimal
-    //       src stage: transfer dst stage: fragment shader
-
-    VkImageMemoryBarrier imageMemBarrierSrcTransToShdrRdonly{.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+    VkImageMemoryBarrier imageMemBarrierSrcTransToShdrRdonly{.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                                              .pNext = nullptr,
-                                                             .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                                                             .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
                                                              .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
                                                              .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                                              .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -100,7 +98,7 @@ class VulkanUtils {
                                                              .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                                                              .image = destinationImage,
                                                              .subresourceRange = subResourceRange};
-
+    // begin command buffer recording
     VkCommandBufferBeginInfo cmdBufferBeginInfo{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
                                                 .pNext = nullptr,
                                                 .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
@@ -110,29 +108,26 @@ class VulkanUtils {
       throw std::runtime_error("Error beginning command buffer recording");
     }
 
+    // submit commands
     vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                          VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 0, nullptr, 1, &imageMemBarrier);
     VkImageSubresourceLayers subResource{
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = 1, .baseArrayLayer = 0, .layerCount = 1};
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = 0, .baseArrayLayer = 0, .layerCount = 1};
     VkBufferImageCopy imageCopy{.bufferOffset = 0,
                                 .bufferRowLength = width,
                                 .bufferImageHeight = height,
                                 .imageSubresource = subResource,
                                 .imageOffset = {0, 0, 0},
-                                .imageExtent = {width, height, 1}
-    };
+                                .imageExtent = {width, height, 1}};
     vkCmdCopyBufferToImage(cmdBuffer, sourceBuffer, destinationImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
                            &imageCopy);
-    // TODO:
-    // record another cmdpipelinebarrier with the additional barrier
-    // end buffer
 
     vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                          VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 0, nullptr, 1,
                          &imageMemBarrierSrcTransToShdrRdonly);
     vkEndCommandBuffer(cmdBuffer);
 
-    //todo: submit command buffer to queue
+    // submit command buffer
     VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                             .pNext = nullptr,
                             .waitSemaphoreCount = 0,

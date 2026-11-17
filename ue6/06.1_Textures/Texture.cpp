@@ -137,8 +137,7 @@ void Texture::allocateTextureImageMemory() {
 // - wait for _queue to become idle
 // - free the command buffer
 void Texture::copyBufferToImage() {
-  VulkanUtils::copyBufferToImage(_imageBuffer, _textureImage, _commandPool, _device, _texWidth, _texHeight,
-                                 _queue);
+  VulkanUtils::copyBufferToImage(_imageBuffer, _textureImage, _commandPool, _device, _texWidth, _texHeight, _queue);
 }
 
 // create an image view for _textureImage
@@ -182,7 +181,7 @@ void Texture::createTextureSampler() {
                                 .minLod = 0,
                                 .maxLod = 0,
                                 .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
-                                .unnormalizedCoordinates = VK_TRUE};
+                                .unnormalizedCoordinates = VK_FALSE};
   if (vkCreateSampler(_device, &samplerCI, nullptr, &_textureSampler) != VK_SUCCESS) {
     throw std::runtime_error("Error creating sampler");
   };
