@@ -50,7 +50,7 @@ bool wasResized()
 VkExtent2D getExtent()
 {
     int width, height;
-    glfwGetWindowSize(_window, &width, &height);
+    glfwGetFramebufferSize(_window, &width, &height);
     return VkExtent2D {width, height};
 }
 
