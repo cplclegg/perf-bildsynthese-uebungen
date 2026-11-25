@@ -141,7 +141,7 @@ void Texture::allocateTextureImageMemory() {
 // - wait for _queue to become idle
 // - free the command buffer
 void Texture::copyBufferToImage() {
-  VulkanUtils::copyBufferToImage(_imageBuffer, _textureImage, _commandPool, _device, _texWidth, _texHeight, _queue);
+  VulkanUtils::copyBufferToImage(_imageBuffer, _textureImage, _mipLevels, _commandPool, _device, _texWidth, _texHeight, _queue);
 }
 
 // create an image view for _textureImage
