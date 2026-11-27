@@ -4,3 +4,5 @@ triangle
 .idea
 testapp
 sys_specs
+/build
+/builddir

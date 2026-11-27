@@ -1,5 +1,6 @@
 #include "Device.hpp"
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -50,8 +51,11 @@ void Device::pickPhysicalDevice(VkInstance instance,
         }
       }
       _physicalDevice = pd;
-      if (graphicsQueueFound && presentQueueFound)
+      if (graphicsQueueFound && presentQueueFound && computeQueueFound)
+      {
+        std::cout << "Graphics: " << _graphicsQueueFamilyIndex <<  " Present: " << _presentQueueFamilyIndex << " Compute: " << _computeQueueFamilyIndex << std::endl;
         break;
+      }
     }
   }
   if (!graphicsQueueFound || !presentQueueFound) {

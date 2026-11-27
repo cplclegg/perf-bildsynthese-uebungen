@@ -35,8 +35,8 @@ void main(void)
   //curr[index].position += curr[index].velocity;
   //curr[index].velocity += currAcceleration;
   
-  //curr[index] = eulerFunc(curr[index].position, curr[index].velocity, currAcceleration); 
-  curr[index] = rungeKuttaFunc(curr[index].position, curr[index].velocity, currAcceleration);
+  curr[index] = eulerFunc(curr[index].position, curr[index].velocity, currAcceleration);
+  //curr[index] = rungeKuttaFunc(curr[index].position, curr[index].velocity, currAcceleration);
 }
 
 Particle rungeKuttaFunc(vec3 position, vec3 velocity, vec3 acceleration) {
@@ -54,7 +54,6 @@ Particle rungeKuttaFunc(vec3 position, vec3 velocity, vec3 acceleration) {
   Particle result = {
      x_zero.position + (h/6)*k_one.position + (h/3)*k_two.position + (h/3)*k_three.position + (h/6)*k_four.position,
      x_zero.velocity + (h/6)*k_one.velocity + (h/3)*k_two.velocity + (h/3)*k_three.velocity + (h/6)*k_four.velocity};
-
   return result;
 }
 

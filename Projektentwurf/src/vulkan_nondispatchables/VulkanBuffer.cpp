@@ -24,6 +24,7 @@ VulkanBuffer::VulkanBuffer(VkDevice device, VkBufferCreateFlags createFlags, siz
       m_boundMemoryOffset{},
       m_boundMemorySize{},
       m_memoryRequirements{} {
+
   if (vkCreateBuffer(m_deviceHandle, &m_createInfo, nullptr, &m_bufferHandle) != VK_SUCCESS) {
     throw std::runtime_error("Error constructing buffer object: buffer creation failed");
   }

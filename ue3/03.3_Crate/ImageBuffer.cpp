@@ -15,7 +15,7 @@ void ImageBuffer::createBuffer()
         &_texWidth, &_texHeight,
         &_numberOfTexChannels,
         0
-        );
+    );
     size_t texMemorySize = _texHeight * _texWidth * _numberOfTexChannels;
     VkBufferCreateInfo bufferCreateInfo {};
     bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -25,7 +25,7 @@ void ImageBuffer::createBuffer()
 
     if (vkCreateBuffer(_device, &bufferCreateInfo, nullptr, &_imageBuffer) != VK_SUCCESS)
     {
-        std::cout << "Error creating image buffer" << std::endl;
+        throw std::runtime_error("Error creating buffer");
     }
 
     VkMemoryRequirements memoryRequirements {};
@@ -52,17 +52,17 @@ void ImageBuffer::createBuffer()
 
     if (vkAllocateMemory(_device, &allocateInfo, nullptr, &_imageBufferMemory) != VK_SUCCESS)
     {
-        std::cout << "Error allocating memory for texture buffer" << std::endl;
+        throw std::runtime_error("Error allocating memory for texture buffer");
     }
 
     if (vkBindBufferMemory(_device, _imageBuffer, _imageBufferMemory, 0) != VK_SUCCESS)
     {
-        std::cout << "Error binding memory to vertex buffer" << std::endl;
+        throw std::runtime_error("Error binding memory to vertex buffer");
     }
     void *imageBufferMemoryPointer {nullptr};
     if (vkMapMemory(_device, _imageBufferMemory, 0, VK_WHOLE_SIZE, 0, &imageBufferMemoryPointer) != VK_SUCCESS)
     {
-        std::cout << "Error mapping texture image buffer memory" << std::endl;
+        throw std::runtime_error("Error mapping texture image buffer memory");
     }
     std::memcpy(imageBufferMemoryPointer, imageData, texMemorySize);
     vkUnmapMemory(_device, _imageBufferMemory);
