@@ -1,9 +1,11 @@
 //
 // Created by tomnir on 23.11.26.
 //
-
+#include "Surface.hpp"
+#include <stdexcept>
+#include <vulkan/vulkan_core.h>
 // call vkGetPhysicalDeviceSurfaceSupportKHR and return the result
-bool canQueueFamilyPresent(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex)
+bool Surface::canQueueFamilyPresent(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex)
 {
     VkBool32 result {VK_FALSE};
     vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamilyIndex, _surface, &result);
@@ -12,7 +14,7 @@ bool canQueueFamilyPresent(VkPhysicalDevice physicalDevice, uint32_t queueFamily
 
 // call queryFormats and queryPresentModes
 // return true if both are not empty, otherwise return false
-bool isAdequate(VkPhysicalDevice physicalDevice)
+bool Surface::isAdequate(VkPhysicalDevice physicalDevice)
 {
     auto formats = queryFormats(physicalDevice);
     auto presentModes = queryPresentModes(physicalDevice);
@@ -20,7 +22,7 @@ bool isAdequate(VkPhysicalDevice physicalDevice)
 }
 
 // return the surface capabilities for the physical device
-VkSurfaceCapabilitiesKHR queryCapabilities(VkPhysicalDevice physicalDevice)
+VkSurfaceCapabilitiesKHR Surface::queryCapabilities(VkPhysicalDevice physicalDevice)
 {
     VkSurfaceCapabilitiesKHR capabilities {};
     if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, _surface, &capabilities) != VK_SUCCESS)
@@ -31,7 +33,7 @@ VkSurfaceCapabilitiesKHR queryCapabilities(VkPhysicalDevice physicalDevice)
 }
 
 // return the surface formats for the physical device
-std::vector<VkSurfaceFormatKHR> queryFormats(VkPhysicalDevice physicalDevice)
+std::vector<VkSurfaceFormatKHR> Surface::queryFormats(VkPhysicalDevice physicalDevice)
 {
     uint32_t count {};
     vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, _surface, &count, nullptr);
@@ -41,11 +43,11 @@ std::vector<VkSurfaceFormatKHR> queryFormats(VkPhysicalDevice physicalDevice)
 }
 
 // return the present modes for the physical device
-std::vector<VkPresentModeKHR> queryPresentModes(VkPhysicalDevice physicalDevice)
+std::vector<VkPresentModeKHR> Surface::queryPresentModes(VkPhysicalDevice physicalDevice)
 {
     uint32_t count {};
-    vkGetPhysicalDevicePresentModesKHR(physicalDevice, _surface, &count, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, _surface, &count, nullptr);
     std::vector<VkPresentModeKHR> modes (count);
-    vkGetPhysicalDevicePresentModesKHR(physicalDevice, _surface, &count, modes.data());
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, _surface, &count, modes.data());
     return modes;
 }

@@ -4,14 +4,18 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
+#include "Surface.hpp"
+
 //=============================================================================
 //============================= Pick physical device ==========================
 //=============================================================================
 
-void Device::pickPhysicalDevice(VkInstance instance,
-                                bool (*isDeviceSuitable)(VkPhysicalDevice),
-                                bool (*canQueueFamilyPresent)(VkPhysicalDevice,
-                                                              uint32_t)) {
+
+// return the first device that fulfills all requirements
+// set presentQueueFamilyIndex and graphicsQueueFamilyIndex
+// print the name of the device
+// throw an error if no device is suitable
+void Device::pickPhysicalDevice(VkInstance instance, Surface* surface) {
 
   uint32_t physicalDeviceCount{0};
   vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr);
@@ -22,39 +26,53 @@ void Device::pickPhysicalDevice(VkInstance instance,
   std::vector<VkPhysicalDevice> physicalDevices{physicalDeviceCount};
   vkEnumeratePhysicalDevices(instance, &physicalDeviceCount,
                              physicalDevices.data());
-
+  // check for each device:
+  // - if it supports the extension VK_KHR_SWAPCHAIN_EXTENSION_NAME
+  // - if it is adequate for the surface by calling surface->isAdequate(...)
+  // - if it provides a graphics queue
+  // - if it provides a presentation queue by calling surface->canQueueFamilyPresent(...)
   bool graphicsQueueFound{false};
   bool presentQueueFound{false};
-  bool computeQueueFound{false};
+  [[maybe_unused]] bool computeQueueFound{false};
   for (auto &pd : physicalDevices) {
-    if (isDeviceSuitable(pd)) {
-      uint32_t queueFamPropCount{};
-      vkGetPhysicalDeviceQueueFamilyProperties(pd, &queueFamPropCount, nullptr);
-      std::vector<VkQueueFamilyProperties> queueFamProps(queueFamPropCount);
-      vkGetPhysicalDeviceQueueFamilyProperties(pd, &queueFamPropCount,
-                                               queueFamProps.data());
+      uint32_t pdExtensionCount {};
+      vkEnumerateDeviceExtensionProperties(pd, nullptr, &pdExtensionCount, nullptr);
+      std::vector<VkExtensionProperties> extensions (pdExtensionCount);
+      vkEnumerateDeviceExtensionProperties(pd, nullptr, &pdExtensionCount, extensions.data());
 
-      for (uint32_t i = 0; i < queueFamPropCount; ++i) {
-        auto qf = queueFamProps[i];
-        if (qf.queueFlags & VK_QUEUE_GRAPHICS_BIT && !graphicsQueueFound) {
-          _graphicsQueueFamilyIndex = i;
-          graphicsQueueFound = true;
+      for (uint32_t j = 0; j < pdExtensionCount; ++j)
+      {
+        if (strcmp(extensions.at(j).extensionName, "VK_KHR_SWAPCHAIN_EXTENSION_NAME") != 0)
+        {
+          uint32_t queueFamPropCount{};
+          vkGetPhysicalDeviceQueueFamilyProperties(pd, &queueFamPropCount, nullptr);
+          std::vector<VkQueueFamilyProperties> queueFamProps(queueFamPropCount);
+          vkGetPhysicalDeviceQueueFamilyProperties(pd, &queueFamPropCount,
+                                                   queueFamProps.data());
+
+          for (uint32_t i = 0; i < queueFamPropCount; ++i) {
+            auto qf = queueFamProps[i];
+            if (qf.queueFlags & VK_QUEUE_GRAPHICS_BIT && !graphicsQueueFound) {
+              _graphicsQueueFamilyIndex = i;
+              graphicsQueueFound = true;
+            }
+            if (surface->canQueueFamilyPresent(pd, i) && !presentQueueFound) {
+              _presentQueueFamilyIndex = i;
+              presentQueueFound = true;
+            } /*
+            if (qf.queueFlags & VK_QUEUE_COMPUTE_BIT && !computeQueueFound) {
+              _computeQueueFamilyIndex = i;
+              computeQueueFound = true;
+            } */
+          }
+          _physicalDevice = pd;
+          if (graphicsQueueFound && presentQueueFound)
+            break;
         }
-        if (canQueueFamilyPresent(pd, i) && !presentQueueFound) {
-          _presentQueueFamilyIndex = i;
-          presentQueueFound = true;
-        } /*
-        if (qf.queueFlags & VK_QUEUE_COMPUTE_BIT && !computeQueueFound) {
-          _computeQueueFamilyIndex = i;
-          computeQueueFound = true;
-        } */
+        if (_physicalDevice != VK_NULL_HANDLE) break;
       }
-      _physicalDevice = pd;
-      if (graphicsQueueFound && presentQueueFound)
-        break;
-    }
   }
-  if (!graphicsQueueFound || !presentQueueFound) {
+  if (!graphicsQueueFound || !presentQueueFound || _physicalDevice == VK_NULL_HANDLE) {
     throw std::runtime_error("no suitable physical device found");
   }
 }
