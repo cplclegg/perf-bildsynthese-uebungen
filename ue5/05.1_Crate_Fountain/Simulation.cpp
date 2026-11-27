@@ -16,7 +16,6 @@
 #include <vulkan/vulkan_core.h>
 
 void Simulation::createDescriptorSetLayout() {
-  std::cout << "createDescriptorSetLayout entered\n";
   std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings{};
 
   VkDescriptorSetLayoutBinding initial{
@@ -46,14 +45,12 @@ void Simulation::createDescriptorSetLayout() {
                                   &_descriptorSetLayout) != VK_SUCCESS) {
     throw std::runtime_error("Error creating descriptor set layout");
   }
-  std::cout << "createDescriptorSetLayout exit\n";
 }
 
 // Create the pipeline layout
 // - Use the descriptor set layout from _descriptorSetLayout.
 // - Save the layout in _pipelineLayout.
 void Simulation::createPipelineLayout() {
-  std::cout << "createPipelineLayout entered\n";
   VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       .pNext = nullptr,
@@ -66,7 +63,6 @@ void Simulation::createPipelineLayout() {
                              &_pipelineLayout) != VK_SUCCESS) {
     throw std::runtime_error("Error creating pipeline layout");
   }
-  std::cout << "createPipelineLayout exit\n";
 }
 
 // Create a compute pipeline
@@ -77,12 +73,10 @@ void Simulation::createPipelineLayout() {
 // - Save the pipeline in the member variable _computePipeline.
 // - Destroy the shader module.
 void Simulation::createPipeline() {
-  std::cout << "createPipeline entered\n";
   std::vector<VkComputePipelineCreateInfo> compPlCreateInfos{};
 
   // read compute shader code from file
   auto shaderCodeCharVector = VulkanUtils::readFile("shaders/testapp.comp.spv");
-  std::cout << "\tfile read\n";
 
   // create compute shader module
   VkShaderModuleCreateInfo smCreateInfo{
@@ -97,7 +91,6 @@ void Simulation::createPipeline() {
                            &computeShaderModule) != VK_SUCCESS) {
     throw std::runtime_error("Error creating compute shader module");
   }
-  std::cout << "\tmodule created\n";
 
   // create shader stage
   VkPipelineShaderStageCreateInfo plShaderStageCreateInfo{
@@ -108,7 +101,6 @@ void Simulation::createPipeline() {
       .module = computeShaderModule,
       .pName = "main",
       .pSpecializationInfo = nullptr};
-  std::cout << "\tshader stage create info done\n";
 
   // create compute pipeline
 
@@ -120,16 +112,13 @@ void Simulation::createPipeline() {
       .layout = _pipelineLayout,
       .basePipelineHandle = VK_NULL_HANDLE,
       .basePipelineIndex = 0};
-  std::cout << "\tpipeline creat info done\n";
   compPlCreateInfos.push_back(compPlCreateInfo);
 
   if (vkCreateComputePipelines(_device, VK_NULL_HANDLE, 1, &compPlCreateInfo,
                                nullptr, &_computePipeline) != VK_SUCCESS) {
     throw std::runtime_error("Error creating compute pipelines");
   }
-  std::cout << "\tpipeline created\n";
   vkDestroyShaderModule(_device, computeShaderModule, nullptr);
-  std::cout << "createPipeline exit\n";
 }
 
 // Create storage buffers used by compute shader
@@ -141,7 +130,6 @@ void Simulation::createPipeline() {
 // - Use _initBuffer and _initBufferMemory for the first buffer.
 // - Use _currBuffer and _currBufferMemory for the second buffer.
 void Simulation::createStorageBuffers() {
-  std::cout << "createStorageBuffers entered\n";
   constexpr size_t requiredMemory{256 * sizeof(Particle)};
   VkPhysicalDeviceMemoryProperties pdMemProps{};
   vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &pdMemProps);
@@ -272,12 +260,10 @@ void Simulation::createStorageBuffers() {
   vkUnmapMemory(_device, _initBufferMemory);
   vkUnmapMemory(_device, _currBufferMemory);
 
-  std::cout << "createStorageBuffers exit\n";
 }
 // Create a descriptor pool for both storage buffers
 // - Save the descriptor pool in _descriptorPool.
 void Simulation::createDescriptorPool() {
-  std::cout << "createDescriptorPool entered\n";
   VkDescriptorPoolSize poolSize{.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
                                 .descriptorCount = 2};
   VkDescriptorPoolCreateInfo dpCreateInfo{
@@ -291,14 +277,12 @@ void Simulation::createDescriptorPool() {
                              &_descriptorPool) != VK_SUCCESS) {
     throw std::runtime_error("Error creating descriptor pool");
   }
-  std::cout << "createDescriptorPool exit\n";
 }
 
 // Allocate a descriptor set for the descriptor set layout
 // - Use _descriptorPool and _descriptorSetLayout.
 // - Save the descriptor set in _descriptorSet.
 void Simulation::allocateDescriptorSet() {
-  std::cout << "allocateDescriptorSet entered\n";
   VkDescriptorSetAllocateInfo dsAllocInfo{
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
       .pNext = nullptr,
@@ -309,7 +293,6 @@ void Simulation::allocateDescriptorSet() {
       VK_SUCCESS) {
     throw std::runtime_error("Error allocating descriptor set");
   }
-  std::cout << "allocateDescriptorSet exit\n";
 }
 
 // Update descriptor set with buffer data
@@ -317,7 +300,6 @@ void Simulation::allocateDescriptorSet() {
 // - Write descriptor set from both storage buffers
 //  (_initBuffer and _currBuffer).
 void Simulation::updateDescriptorSet() {
-  std::cout << "updateDescriptorSet entered\n";
   std::vector<VkWriteDescriptorSet> descriptorWrites{};
 
   VkDescriptorBufferInfo initBufferInfo{
@@ -353,14 +335,12 @@ void Simulation::updateDescriptorSet() {
 
   vkUpdateDescriptorSets(_device, descriptorWrites.size(),
                          descriptorWrites.data(), 0, nullptr);
-  std::cout << "updateDescriptorSet exit\n";
 }
 
 // Create a command pool for the compute queue
 // - Use the queue family index from _computeQueueIndex.
 // - Save the command pool in _commandPool.
 void Simulation::createCommandPool() {
-  std::cout << "createCommandPool entered\n";
   VkCommandPoolCreateInfo commandPoolCreateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
       .pNext = nullptr,
@@ -370,13 +350,11 @@ void Simulation::createCommandPool() {
   if (vkCreateCommandPool(_device, &commandPoolCreateInfo, nullptr,
                           &_commandPool) != VK_SUCCESS)
     throw std::runtime_error("Error creating command pool");
-  std::cout << "createCommandPool exit\n";
 }
 
 // Allocate a command buffer
 // - Save the command buffer in _commandBuffer.
 void Simulation::allocateCommandBuffer() {
-  std::cout << "allocateCommandBuffer entered\n";
   VkCommandBufferAllocateInfo cmdBufferAllocateInfo{};
   cmdBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   cmdBufferAllocateInfo.commandPool = _commandPool;
@@ -384,7 +362,6 @@ void Simulation::allocateCommandBuffer() {
   cmdBufferAllocateInfo.commandBufferCount = 1;
 
   vkAllocateCommandBuffers(_device, &cmdBufferAllocateInfo, &_commandBuffer);
-  std::cout << "allocateCommandBuffer exit\n";
 }
 
 // Record the command buffer
@@ -394,7 +371,6 @@ void Simulation::allocateCommandBuffer() {
 //   from _pipelineLayout.
 // - Send a dispatch command with group counts 1, 1, 1.
 void Simulation::recordCommandBuffer() {
-  std::cout << "recordCommandBuffer entered\n";
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
       .pNext = nullptr,
@@ -408,11 +384,9 @@ void Simulation::recordCommandBuffer() {
                           _pipelineLayout, 0, 1, &_descriptorSet, 0, nullptr);
   vkCmdDispatch(_commandBuffer, 1, 1, 1);
   vkEndCommandBuffer(_commandBuffer);
-  std::cout << "recordCommandBuffer exit\n";
 }
 
 void Simulation::destroy() {
-  std::cout << "destroy entered\n";
   vkDeviceWaitIdle(_device);
   vkDestroyBuffer(_device, _initBuffer, nullptr);
   vkDestroyBuffer(_device, _currBuffer, nullptr);
@@ -425,5 +399,4 @@ void Simulation::destroy() {
   vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
   vkDestroyPipeline(_device, _computePipeline, nullptr);
   vkDestroyPipelineLayout(_device, _pipelineLayout, nullptr);
-  std::cout << "destroy exit\n";
 }

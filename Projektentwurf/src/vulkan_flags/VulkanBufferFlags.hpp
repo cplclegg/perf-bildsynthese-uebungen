@@ -9,6 +9,17 @@
 class VulkanBufferFlags
 {
 private:
+    std::map<string, VkBufferUsageFlags> m_usageFlagMap {
+        {"XFER_SRC", VK_BUFFER_USAGE_TRANSFER_SRC_BIT},
+        {"XFER_DST", VK_BUFFER_USAGE_TRANSFER_DST_BIT},
+        {"UNIFORM_TEXEL", VK_BUFFER_USAGE_TEXEL_BUFFER_BIT},
+        {"STORAGE_TEXEL", VK_BUFFER_USAGE_STORAGE_BUFFER_BIT},
+        {"UNIFORM", VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT},
+        {"STORAGE", VK_BUFFER_USAGE_STORAGE_BUFFER_BIT},
+        {"INDEX", VK_BUFFER_USAGE_INDEX_BUFFER_BIT},
+        {"VERTEX", VK_BUFFER_USAGE_VERTEX_BUFFER_BIT},
+        {"INDIRECT", VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT}
+    }
 public:
     static VkBufferUsageFlags usageFlagsVertexPerformant()
     {

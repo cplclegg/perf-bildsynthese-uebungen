@@ -111,20 +111,24 @@ class VulkanUtils {
     // submit commands
     vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                          VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 0, nullptr, 1, &imageMemBarrier);
+
     VkImageSubresourceLayers subResource{
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = 0, .baseArrayLayer = 0, .layerCount = 1};
+
     VkBufferImageCopy imageCopy{.bufferOffset = 0,
                                 .bufferRowLength = width,
                                 .bufferImageHeight = height,
                                 .imageSubresource = subResource,
                                 .imageOffset = {0, 0, 0},
                                 .imageExtent = {width, height, 1}};
+
     vkCmdCopyBufferToImage(cmdBuffer, sourceBuffer, destinationImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
                            &imageCopy);
 
     vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                          VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 0, nullptr, 1,
                          &imageMemBarrierSrcTransToShdrRdonly);
+
     vkEndCommandBuffer(cmdBuffer);
 
     // submit command buffer
