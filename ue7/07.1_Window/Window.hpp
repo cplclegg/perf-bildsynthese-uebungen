@@ -41,7 +41,11 @@ private:
 
     // get the window user pointer (Window object, "this" in the constructor)
     // set of the Window object's member variable _framebufferResized to true
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+    static void framebufferResizeCallback(GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height)
+    {
+        const auto windowUserPointer = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        windowUserPointer->_framebufferResized = true;
+    }
 
     GLFWwindow* _window = nullptr;
     bool _framebufferResized = false;
